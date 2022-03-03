@@ -1,7 +1,7 @@
-**An enhanced command line logging utility.**
-
-
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+
+**An enhanced command line logging utility.**
 
 
 ## Key Features
@@ -73,7 +73,7 @@ examples for structured data and fields will go here
 ```
 
 
-## Differences With `logger`
+## Differences Between `stumpless` and `logger`
 This logger is _not_ written as a drop-in replacement for other `logger`
 implementations. There are differences that arise from decisions made for
 simplicity, performance, or necessity. Here are the differences that are
