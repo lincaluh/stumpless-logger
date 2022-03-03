@@ -17,10 +17,10 @@ connecting socket.",
                 .multiple_values(false),
         )
         .arg(arg!(-'l' --"log-file" <file> "Log the entry to the given file.").required(false))
-        .arg(arg!(message: <message> "The message to send in the log entry."))
+        .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
         .get_matches();
 
-    let message = CString::new(cli_matches.value_of("message").unwrap()).unwrap();
+    let message = CString::new(cli_matches.values_of("message").unwrap().collect::<String>()).unwrap();
 
     if cli_matches.is_present("log-file") {
         let log_filename = CString::new(cli_matches.value_of("log-file").unwrap()).unwrap();
