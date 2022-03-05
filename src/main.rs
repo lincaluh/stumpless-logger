@@ -1,5 +1,5 @@
 use clap::{arg, command};
-use std::ffi::CString;
+use stumpless::FileTarget;
 
 fn main() {
     let cli_matches = command!()
@@ -20,14 +20,14 @@ connecting socket.",
         .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
         .get_matches();
 
-    let message = CString::new(cli_matches.values_of("message").unwrap().collect::<String>()).unwrap();
+    let message = cli_matches
+        .values_of("message")
+        .unwrap()
+        .collect::<String>();
 
     if cli_matches.is_present("log-file") {
-        let log_filename = CString::new(cli_matches.value_of("log-file").unwrap()).unwrap();
-        unsafe {
-            let file_target = stumpless::stumpless_open_file_target(log_filename.as_ptr());
-            stumpless::stumpless_add_message( file_target, message.as_ptr() );
-            stumpless::stumpless_close_target( file_target );
-        }
+        let log_filename = cli_matches.value_of("log-file").unwrap();
+        let file_target = FileTarget::new(log_filename).unwrap();
+        file_target.add_message(&message);
     }
 }

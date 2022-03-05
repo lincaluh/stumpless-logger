@@ -4,7 +4,10 @@ fn main() {
     let stumpless_out = cmake::Config::new("/mnt/c/users/reall/code/stumpless")
         .define("BUILD_SHARED_LIBS", "OFF")
         .build();
-    println!("cargo:rustc-link-search=native={}/lib", stumpless_out.display());
+    println!(
+        "cargo:rustc-link-search=native={}/lib",
+        stumpless_out.display()
+    );
     println!("cargo:rustc-link-lib=static=stumpless");
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
