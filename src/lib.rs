@@ -1,8 +1,4 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-
-include!("stumpless_bindings.rs");
+use stumpless_sys::{stumpless_open_file_target, stumpless_add_message_str, stumpless_entry, stumpless_target, stumpless_facility_STUMPLESS_FACILITY_KERN, stumpless_facility_STUMPLESS_FACILITY_USER};
 
 use std::error::Error;
 use std::ffi::CString;
