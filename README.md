@@ -9,7 +9,7 @@ The stumpless logger aims to be a replacement for and improvement over the
 traditional `logger` utility. It is written with
 [Rust](https://www.rust-lang.org/) and
 [Stumpless](https://github.com/goatshriek/stumpless), and offers a number of
-improvements over legacy tool, including:
+improvements over legacy tools, including:
 
   * more logging target options (file, Windows Event Log)
   * log to multiple destinations with a single invocation
