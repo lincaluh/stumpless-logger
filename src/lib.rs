@@ -1,16 +1,17 @@
-use stumpless_sys::{stumpless_open_file_target, stumpless_add_message_str, stumpless_entry, stumpless_target, stumpless_facility_STUMPLESS_FACILITY_KERN, stumpless_facility_STUMPLESS_FACILITY_USER};
+//use stumpless_sys::{stumpless_open_file_target, stumpless_add_message_str, stumpless_entry, stumpless_target, stumpless_facility_STUMPLESS_FACILITY_KERN, stumpless_facility_STUMPLESS_FACILITY_USER};
+use stumpless_sys::{stumpless_open_file_target, stumpless_add_message_str, stumpless_target};
 
 use std::error::Error;
 use std::ffi::CString;
 
-pub enum Facility {
-    Kern = stumpless_facility_STUMPLESS_FACILITY_KERN as isize,
-    User = stumpless_facility_STUMPLESS_FACILITY_USER as isize,
-}
+//pub enum Facility {
+//    Kern = stumpless_facility_STUMPLESS_FACILITY_KERN as isize,
+//    User = stumpless_facility_STUMPLESS_FACILITY_USER as isize,
+//}
 
-pub struct Entry {
-    entry: *mut stumpless_entry,
-}
+//pub struct Entry {
+//    entry: *mut stumpless_entry,
+//}
 
 pub struct FileTarget {
     target: *mut stumpless_target,

@@ -28,6 +28,6 @@ connecting socket.",
     if cli_matches.is_present("log-file") {
         let log_filename = cli_matches.value_of("log-file").unwrap();
         let file_target = FileTarget::new(log_filename).unwrap();
-        file_target.add_message(&message);
+        file_target.add_message(&message).expect("logging to the file failed!");
     }
 }
