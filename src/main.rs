@@ -1,6 +1,9 @@
 use clap::{arg, command};
 use stumpless::FileTarget;
 
+#[cfg(feature = "journald")]
+use stumpless::JournaldTarget;
+
 fn main() {
     let cli_matches = command!()
         .arg(
@@ -16,6 +19,8 @@ connecting socket.",
                 )
                 .multiple_values(false),
         )
+        .arg(arg!(-'f' --"file" "Log the contents of the file instead of reading from stdin or message arg.").required(false))
+        .arg(arg!(-'j' --"journald" "Log the entry to the journald system.").required(false))
         .arg(arg!(-'l' --"log-file" <file> "Log the entry to the given file.").required(false))
         .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
         .get_matches();
@@ -28,6 +33,21 @@ connecting socket.",
     if cli_matches.is_present("log-file") {
         let log_filename = cli_matches.value_of("log-file").unwrap();
         let file_target = FileTarget::new(log_filename).unwrap();
-        file_target.add_message(&message).expect("logging to the file failed!");
+        file_target
+            .add_message(&message)
+            .expect("logging to the file failed!");
+    }
+
+    #[cfg(feature = "journald")]
+    if cli_matches.is_present("journald") {
+        let journald_target = JournaldTarget::new().unwrap();
+        journald_target
+            .add_message(&message)
+            .expect("logging to journald failed!");
+    }
+
+    #[cfg(not(feature = "journald"))]
+    if cli_matches.is_present("journald") {
+        eprintln!("journald not enabled, ignoring --journald option");
     }
 }
