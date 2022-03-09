@@ -76,3 +76,36 @@ impl JournaldTarget {
 
     // TODO: need to add the destructor
 }
+
+#[cfg(feature = "socket")]
+pub struct SocketTarget {
+    target: *mut stumpless_target,
+}
+
+#[cfg(feature ="socket")]
+impl SocketTarget {
+    pub fn new(socket_name: &str) -> Result<Self, Box<dyn Error>> {
+        let c_socket_name = CString::new(socket_name)?;
+        let socket_target = unsafe { stumpless_open_socket_target(c_socket_name.as_ptr(), std::ptr::null()) };
+
+        if socket_target.is_null() {
+            panic!("ah crap, stumpless couldn't open that socket!");
+        }
+
+        Ok(SocketTarget {
+            target: socket_target,
+        })
+    }
+
+    pub fn add_message(&self, message: &str) -> Result<u32, Box<dyn Error>> {
+        let c_message = CString::new(message)?;
+
+        unsafe {
+            stumpless_add_message_str(self.target, c_message.as_ptr());
+        }
+
+        Ok(1)
+    }
+
+    // TODO: need to add the destructor
+}
