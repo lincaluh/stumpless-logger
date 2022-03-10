@@ -40,8 +40,12 @@ impl FileTarget {
 
         Ok(1)
     }
+}
 
-    // TODO: need to add the destructor
+impl Drop for FileTarget {
+    fn drop(&mut self) {
+        unsafe { stumpless_close_file_target(self.target); }
+    }
 }
 
 #[cfg(feature = "journald")]
@@ -73,8 +77,13 @@ impl JournaldTarget {
 
         Ok(1)
     }
+}
 
-    // TODO: need to add the destructor
+#[cfg(feature = "journald")]
+impl Drop for JournaldTarget {
+    fn drop(&mut self) {
+        unsafe { stumpless_close_journald_target(self.target); }
+    }
 }
 
 #[cfg(feature = "socket")]
@@ -106,6 +115,11 @@ impl SocketTarget {
 
         Ok(1)
     }
+}
 
-    // TODO: need to add the destructor
+#[cfg(feature = "socket")]
+impl Drop for SocketTarget {
+    fn drop(&mut self) {
+        unsafe { stumpless_close_socket_target(self.target); }
+    }
 }
