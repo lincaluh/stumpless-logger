@@ -1,5 +1,5 @@
 use clap::{arg, command};
-use stumpless::FileTarget;
+use stumpless::{Entry, Facility, FileTarget, Severity};
 
 #[cfg(feature = "journald")]
 use stumpless::JournaldTarget;
@@ -24,7 +24,7 @@ connecting socket.",
         )
         .arg(arg!(-'f' --"file" "Log the contents of the file instead of reading from stdin or message arg.").required(false))
         .arg(arg!(-'j' --"journald" "Log the entry to the journald system.").required(false))
-        .arg(arg!(-'u' --"socket" <socket> "Write to the provided socket.").required(false))
+        .arg(arg!(-'u' --"socket" [socket] "Write to the provided socket, or /dev/log if none is provided.").required(false))
         .arg(arg!(-'l' --"log-file" <file> "Log the entry to the given file.").required(false))
         .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
         .get_matches();
@@ -34,11 +34,13 @@ connecting socket.",
         .unwrap()
         .collect::<String>();
 
+    let entry = Entry::new(Facility::User, Severity::Alert, "app_name", "msgid", &message).expect("entry creation failed!");
+
     if cli_matches.is_present("log-file") {
         let log_filename = cli_matches.value_of("log-file").unwrap();
         let file_target = FileTarget::new(log_filename).unwrap();
         file_target
-            .add_message(&message)
+            .add_entry(&entry)
             .expect("logging to the file failed!");
     }
 
@@ -46,7 +48,7 @@ connecting socket.",
     if cli_matches.is_present("journald") {
         let journald_target = JournaldTarget::new().unwrap();
         journald_target
-            .add_message(&message)
+            .add_entry(&entry)
             .expect("logging to journald failed!");
     }
 
@@ -60,7 +62,7 @@ connecting socket.",
         let socket_name = cli_matches.value_of("socket").unwrap();
         let socket_target = SocketTarget::new(socket_name).unwrap();
         socket_target
-            .add_message(&message)
+            .add_entry(&entry)
             .expect("logging to socket failed!");
     }
 
