@@ -1,8 +1,8 @@
 use stumpless_sys::*;
 
-use std::fmt;
 use std::error::Error;
 use std::ffi::CString;
+use std::fmt;
 
 pub enum Facility {
     Kernel = stumpless_facility_STUMPLESS_FACILITY_KERN as isize,
@@ -49,7 +49,7 @@ impl Error for StumplessError {}
 
 impl fmt::Display for StumplessError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "stumpless error encountered")
+        write!(f, "stumpless error encountered!")
     }
 }
 
@@ -86,6 +86,18 @@ impl Entry {
     }
 }
 
+pub trait Target {
+    fn get_pointer(&self) -> *mut stumpless_target;
+}
+
+pub fn add_entry(target: &impl Target, entry: &Entry) -> Result<u32, Box<dyn Error>> {
+    unsafe {
+        stumpless_add_entry(target.get_pointer(), entry.entry);
+    }
+
+    Ok(1)
+}
+
 pub struct FileTarget {
     target: *mut stumpless_target,
 }
@@ -104,14 +116,6 @@ impl FileTarget {
         })
     }
 
-    pub fn add_entry(&self, entry: &Entry) -> Result<u32, Box<dyn Error>> {
-        unsafe {
-            stumpless_add_entry(self.target, entry.entry);
-        }
-
-        Ok(1)
-    }
-
     pub fn add_message(&self, message: &str) -> Result<u32, Box<dyn Error>> {
         let c_message = CString::new(message)?;
 
@@ -120,6 +124,12 @@ impl FileTarget {
         }
 
         Ok(1)
+    }
+}
+
+impl Target for FileTarget {
+    fn get_pointer(&self) -> *mut stumpless_target {
+        self.target
     }
 }
 

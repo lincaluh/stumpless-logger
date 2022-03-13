@@ -1,5 +1,5 @@
 use clap::{arg, command};
-use stumpless::{Entry, Facility, FileTarget, Severity};
+use stumpless::{add_entry, Entry, Facility, FileTarget, Severity};
 
 #[cfg(feature = "journald")]
 use stumpless::JournaldTarget;
@@ -46,9 +46,7 @@ connecting socket.",
     if cli_matches.is_present("log-file") {
         let log_filename = cli_matches.value_of("log-file").unwrap();
         let file_target = FileTarget::new(log_filename).unwrap();
-        file_target
-            .add_entry(&entry)
-            .expect("logging to the file failed!");
+        add_entry(&file_target, &entry).expect("logging to the file failed!");
     }
 
     #[cfg(feature = "journald")]
