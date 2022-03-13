@@ -34,7 +34,14 @@ connecting socket.",
         .unwrap()
         .collect::<String>();
 
-    let entry = Entry::new(Facility::User, Severity::Alert, "app_name", "msgid", &message).expect("entry creation failed!");
+    let entry = Entry::new(
+        Facility::User,
+        Severity::Alert,
+        "app_name",
+        "msgid",
+        &message,
+    )
+    .expect("entry creation failed!");
 
     if cli_matches.is_present("log-file") {
         let log_filename = cli_matches.value_of("log-file").unwrap();

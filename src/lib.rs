@@ -1,6 +1,6 @@
-//use stumpless_sys::{stumpless_open_file_target, stumpless_add_message_str, stumpless_entry, stumpless_target, stumpless_facility_STUMPLESS_FACILITY_KERN, stumpless_facility_STUMPLESS_FACILITY_USER};
 use stumpless_sys::*;
 
+use std::fmt;
 use std::error::Error;
 use std::ffi::CString;
 
@@ -34,7 +34,7 @@ pub enum Facility {
 pub enum Severity {
     Emergency = stumpless_severity_STUMPLESS_SEVERITY_EMERG as isize,
     Alert = stumpless_severity_STUMPLESS_SEVERITY_ALERT as isize,
-    Critical =  stumpless_severity_STUMPLESS_SEVERITY_CRIT as isize,
+    Critical = stumpless_severity_STUMPLESS_SEVERITY_CRIT as isize,
     Error = stumpless_severity_STUMPLESS_SEVERITY_ERR as isize,
     Warning = stumpless_severity_STUMPLESS_SEVERITY_WARNING as isize,
     Notice = stumpless_severity_STUMPLESS_SEVERITY_NOTICE as isize,
@@ -42,12 +42,29 @@ pub enum Severity {
     Debug = stumpless_severity_STUMPLESS_SEVERITY_DEBUG as isize,
 }
 
+#[derive(Debug, Clone)]
+pub struct StumplessError;
+
+impl Error for StumplessError {}
+
+impl fmt::Display for StumplessError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "stumpless error encountered")
+    }
+}
+
 pub struct Entry {
     entry: *mut stumpless_entry,
 }
 
 impl Entry {
-    pub fn new(facility: Facility, severity: Severity, app_name: &str, msgid: &str, message: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn new(
+        facility: Facility,
+        severity: Severity,
+        app_name: &str,
+        msgid: &str,
+        message: &str,
+    ) -> Result<Self, Box<dyn Error>> {
         let c_app_name = CString::new(app_name)?;
         let c_msgid = CString::new(msgid)?;
         let c_message = CString::new(message)?;
@@ -62,10 +79,10 @@ impl Entry {
         };
 
         if new_entry.is_null() {
-            panic!("ah crap, stumpless couldn't create a new entry!");
+            Err(Box::new(StumplessError))
+        } else {
+            Ok(Entry { entry: new_entry })
         }
-
-        Ok(Entry { entry: new_entry })
     }
 }
 
