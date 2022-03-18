@@ -52,9 +52,7 @@ connecting socket.",
     #[cfg(feature = "journald")]
     if cli_matches.is_present("journald") {
         let journald_target = JournaldTarget::new().unwrap();
-        journald_target
-            .add_entry(&entry)
-            .expect("logging to journald failed!");
+        add_entry(&journald_target, &entry).expect("logging to journald failed!");
     }
 
     #[cfg(not(feature = "journald"))]
@@ -66,9 +64,7 @@ connecting socket.",
     if cli_matches.is_present("socket") {
         let socket_name = cli_matches.value_of("socket").unwrap();
         let socket_target = SocketTarget::new(socket_name).unwrap();
-        socket_target
-            .add_entry(&entry)
-            .expect("logging to socket failed!");
+        add_entry(&socket_target, &entry).expect("logging to socket failed!");
     }
 
     #[cfg(not(feature = "socket"))]

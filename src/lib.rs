@@ -98,6 +98,16 @@ pub fn add_entry(target: &impl Target, entry: &Entry) -> Result<u32, Box<dyn Err
     Ok(1)
 }
 
+pub fn add_message(target: &impl Target, message: &str) -> Result<u32, Box<dyn Error>> {
+    let c_message = CString::new(message)?;
+
+    unsafe {
+        stumpless_add_message_str(target.get_pointer(), c_message.as_ptr());
+    }
+
+    Ok(1)
+}
+
 pub struct FileTarget {
     target: *mut stumpless_target,
 }
@@ -114,16 +124,6 @@ impl FileTarget {
         Ok(FileTarget {
             target: file_target,
         })
-    }
-
-    pub fn add_message(&self, message: &str) -> Result<u32, Box<dyn Error>> {
-        let c_message = CString::new(message)?;
-
-        unsafe {
-            stumpless_add_message_str(self.target, c_message.as_ptr());
-        }
-
-        Ok(1)
     }
 }
 
@@ -160,23 +160,12 @@ impl JournaldTarget {
             target: journald_target,
         })
     }
+}
 
-    pub fn add_entry(&self, entry: &Entry) -> Result<u32, Box<dyn Error>> {
-        unsafe {
-            stumpless_add_entry(self.target, entry.entry);
-        }
-
-        Ok(1)
-    }
-
-    pub fn add_message(&self, message: &str) -> Result<u32, Box<dyn Error>> {
-        let c_message = CString::new(message)?;
-
-        unsafe {
-            stumpless_add_message_str(self.target, c_message.as_ptr());
-        }
-
-        Ok(1)
+#[cfg(feature = "journald")]
+impl Target for JournaldTarget {
+    fn get_pointer(&self) -> *mut stumpless_target {
+        self.target
     }
 }
 
@@ -209,23 +198,12 @@ impl SocketTarget {
             target: socket_target,
         })
     }
+}
 
-    pub fn add_entry(&self, entry: &Entry) -> Result<u32, Box<dyn Error>> {
-        unsafe {
-            stumpless_add_entry(self.target, entry.entry);
-        }
-
-        Ok(1)
-    }
-
-    pub fn add_message(&self, message: &str) -> Result<u32, Box<dyn Error>> {
-        let c_message = CString::new(message)?;
-
-        unsafe {
-            stumpless_add_message_str(self.target, c_message.as_ptr());
-        }
-
-        Ok(1)
+#[cfg(feature = "socket")]
+impl Target for SocketTarget {
+    fn get_pointer(&self) -> *mut stumpless_target {
+        self.target
     }
 }
 
