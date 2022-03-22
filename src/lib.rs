@@ -70,8 +70,8 @@ impl Entry {
         let c_message = CString::new(message)?;
         let new_entry = unsafe {
             stumpless_new_entry_str(
-                facility as u32,
-                severity as u32,
+                (facility as u32).try_into().unwrap(),
+                (severity as u32).try_into().unwrap(),
                 c_app_name.as_ptr(),
                 c_msgid.as_ptr(),
                 c_message.as_ptr(),

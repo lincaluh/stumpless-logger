@@ -1,4 +1,5 @@
 use clap::{arg, command};
+use itertools::Itertools;
 use stumpless::{add_entry, Entry, Facility, FileTarget, Severity};
 
 #[cfg(feature = "journald")]
@@ -29,10 +30,9 @@ connecting socket.",
         .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
         .get_matches();
 
-    let message = cli_matches
-        .values_of("message")
-        .unwrap()
-        .collect::<String>();
+    let message_iterator = cli_matches.values_of("message").unwrap();
+
+    let message = Itertools::intersperse(message_iterator, " ").collect::<String>();
 
     let entry = Entry::new(
         Facility::User,
