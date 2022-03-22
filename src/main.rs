@@ -8,6 +8,9 @@ use stumpless::JournaldTarget;
 #[cfg(feature = "socket")]
 use stumpless::SocketTarget;
 
+#[cfg(feature = "wel")]
+use stumpless::WelTarget;
+
 fn main() {
     let cli_matches = command!()
         .arg(
@@ -25,8 +28,9 @@ connecting socket.",
         )
         .arg(arg!(-'f' --"file" "Log the contents of the file instead of reading from stdin or message arg.").required(false))
         .arg(arg!(-'j' --"journald" "Log the entry to the journald system.").required(false))
-        .arg(arg!(-'u' --"socket" [socket] "Write to the provided socket, or /dev/log if none is provided.").required(false))
+        .arg(arg!(-'u' --"socket" [socket] "Log to the provided socket, or /dev/log if none is provided.").required(false))
         .arg(arg!(-'l' --"log-file" <file> "Log the entry to the given file.").required(false))
+        .arg(arg!(-'w' --"windows-event-log" [log] "Log to the Windows Event Log provided, which is Application if none is provided.").required(false))
         .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
         .get_matches();
 
@@ -70,5 +74,17 @@ connecting socket.",
     #[cfg(not(feature = "socket"))]
     if cli_matches.is_present("socket") {
         eprintln!("socket logging not enabled, ignoring --socket option");
+    }
+
+    #[cfg(feature = "wel")]
+    if cli_matches.is_present("wel") {
+        let wel_log_name = cli_matches.value_of("windows-event-log").unwrap();
+        let wel_target = WelTarget::new(wel_log_name).unwrap();
+        add_entry(&wel_target, &entry).expect("logging to the Windows Event Log failed!");
+    }
+
+    #[cfg(not(feature = "wel"))]
+    if cli_matches.is_present("windows-event-log") {
+        eprintln!("Windows Event Log logging is not enabled, ignoring --windows-event-log option");
     }
 }

@@ -215,3 +215,41 @@ impl Drop for SocketTarget {
         }
     }
 }
+
+#[cfg(feature = "wel")]
+pub struct WelTarget {
+    target: *mut stumpless_target,
+}
+
+#[cfg(feature = "wel")]
+impl WelTarget {
+    pub fn new(log_name: &str) -> Result<Self, Box<dyn Error>> {
+        let c_log_name = CString::new(log_name)?;
+        let wel_target =
+            unsafe { stumpless_open_local_wel_target(c_log_name.as_ptr()) };
+
+        if wel_target.is_null() {
+            panic!("ah crap, stumpless couldn't open that Windows log!");
+        }
+
+        Ok(WelTarget {
+            target: wel_target,
+        })
+    }
+}
+
+#[cfg(feature = "wel")]
+impl Target for WelTarget {
+    fn get_pointer(&self) -> *mut stumpless_target {
+        self.target
+    }
+}
+
+#[cfg(feature = "wel")]
+impl Drop for WelTarget {
+    fn drop(&mut self) {
+        unsafe {
+            stumpless_close_wel_target(self.target);
+        }
+    }
+}

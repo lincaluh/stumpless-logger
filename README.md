@@ -11,12 +11,12 @@ traditional `logger` utility. It is written with
 [Stumpless](https://github.com/goatshriek/stumpless), and offers a number of
 improvements over legacy tools, including:
 
- * more logging target options (file, Windows Event Log)
+ * more logging target options (files, Windows Event Log)
  * log to multiple destinations with a single invocation
- * portable and available on both Windows as well as Linux
- * 1.67x faster, according to current
+ * portable and tested on Windows and Linux
+ * 1.67x faster (according to current
    [Hyperfine](https://github.com/sharkdp/hyperfine) comparisons using socket
-   targets
+   targets)
 
 
 ## Send Your Logs Anywhere
