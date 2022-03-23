@@ -49,8 +49,14 @@ connecting socket.",
 
     if cli_matches.is_present("log-file") {
         let log_filename = cli_matches.value_of("log-file").unwrap();
-        let file_target = FileTarget::new(log_filename).unwrap();
-        add_entry(&file_target, &entry).expect("logging to the file failed!");
+        match FileTarget::new(log_filename) {
+            Err(_error) => stumpless::perror("opening the file target failed"),
+            Ok(target) => {
+                if let Err(_error) = add_entry(&target, &entry) {
+                    stumpless::perror("logging to the file target failed");
+                }
+            },
+        };
     }
 
     #[cfg(feature = "journald")]

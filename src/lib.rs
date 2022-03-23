@@ -53,6 +53,12 @@ impl fmt::Display for StumplessError {
     }
 }
 
+pub fn perror(prefix: &str) {
+    let c_prefix = CString::new(prefix).expect("couldn't make a C string");
+
+    unsafe { stumpless_perror(c_prefix.as_ptr()) }
+}
+
 pub struct Entry {
     entry: *mut stumpless_entry,
 }
@@ -91,11 +97,15 @@ pub trait Target {
 }
 
 pub fn add_entry(target: &impl Target, entry: &Entry) -> Result<u32, Box<dyn Error>> {
-    unsafe {
-        stumpless_add_entry(target.get_pointer(), entry.entry);
-    }
+    let add_result = unsafe {
+        stumpless_add_entry(target.get_pointer(), entry.entry)
+    };
 
-    Ok(1)
+    if add_result >= 0 {
+        Ok(add_result.try_into().unwrap())
+    } else {
+        Err(Box::new(StumplessError))
+    }
 }
 
 pub fn add_message(target: &impl Target, message: &str) -> Result<u32, Box<dyn Error>> {
@@ -118,12 +128,12 @@ impl FileTarget {
         let file_target = unsafe { stumpless_open_file_target(c_filename.as_ptr()) };
 
         if file_target.is_null() {
-            panic!("ah crap, stumpless couldn't open that file!");
+            Err(Box::new(StumplessError))
+        } else {
+            Ok(FileTarget {
+                target: file_target,
+            })
         }
-
-        Ok(FileTarget {
-            target: file_target,
-        })
     }
 }
 
