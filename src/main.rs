@@ -5,6 +5,9 @@ use stumpless::{add_entry, Entry, Facility, FileTarget, Severity};
 #[cfg(feature = "journald")]
 use stumpless::JournaldTarget;
 
+#[cfg(feature = "network")]
+use stumpless::NetworkTarget;
+
 #[cfg(feature = "socket")]
 use stumpless::SocketTarget;
 
@@ -30,6 +33,7 @@ connecting socket.",
         .arg(arg!(-'j' --"journald" "Log the entry to the journald system.").required(false))
         .arg(arg!(-'u' --"socket" [socket] "Log to the provided socket, or /dev/log if none is provided.").required(false))
         .arg(arg!(-'l' --"log-file" <file> "Log the entry to the given file.").required(false))
+        .arg(arg!(-'c' --"tcp4" <server> "Send the entry to the given server using TCP over IPv4.").required(false))
         .arg(arg!(-'w' --"windows-event-log" [log] "Log to the Windows Event Log provided, which is Application if none is provided.").required(false))
         .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
         .get_matches();

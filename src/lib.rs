@@ -111,11 +111,15 @@ pub fn add_entry(target: &impl Target, entry: &Entry) -> Result<u32, Box<dyn Err
 pub fn add_message(target: &impl Target, message: &str) -> Result<u32, Box<dyn Error>> {
     let c_message = CString::new(message)?;
 
-    unsafe {
-        stumpless_add_message_str(target.get_pointer(), c_message.as_ptr());
-    }
+    let add_result = unsafe {
+        stumpless_add_message_str(target.get_pointer(), c_message.as_ptr())
+    };
 
-    Ok(1)
+    if add_result >= 0 {
+        Ok(add_result.try_into().unwrap())
+    } else {
+        Err(Box::new(StumplessError))
+    }
 }
 
 pub struct FileTarget {
@@ -163,12 +167,12 @@ impl JournaldTarget {
         let journald_target = unsafe { stumpless_open_journald_target(target_name.as_ptr()) };
 
         if journald_target.is_null() {
-            panic!("ah crap, stumpless couldn't open journald!");
+            Err(Box::new(StumplessError))
+        } else {
+            Ok(JournaldTarget {
+                target: journald_target,
+            })
         }
-
-        Ok(JournaldTarget {
-            target: journald_target,
-        })
     }
 }
 
@@ -188,6 +192,43 @@ impl Drop for JournaldTarget {
     }
 }
 
+#[cfg(feature = "network")]
+pub struct NetworkTarget {
+    target: *mut stumpless_target,
+}
+
+#[cfg(feature = "network")]
+impl NetworkTarget {
+    pub fn new() -> Result<Self, Box<dyn Error>> {
+        let target_name = CString::new("stumpless-cli")?;
+        let network_target = unsafe { stumpless_open_network_target(target_name.as_ptr(), 0, 0) };
+
+        if network_target.is_null() {
+            Err(Box::new(StumplessError))
+        } else {
+            Ok(NetworkTarget {
+                target: network_target,
+            })
+        }
+    }
+}
+
+#[cfg(feature = "network")]
+impl Target for NetworkTarget {
+    fn get_pointer(&self) -> *mut stumpless_target {
+        self.target
+    }
+}
+
+#[cfg(feature = "network")]
+impl Drop for NetworkTarget {
+    fn drop(&mut self) {
+        unsafe {
+            stumpless_close_network_target(self.target);
+        }
+    }
+}
+
 #[cfg(feature = "socket")]
 pub struct SocketTarget {
     target: *mut stumpless_target,
@@ -201,12 +242,12 @@ impl SocketTarget {
             unsafe { stumpless_open_socket_target(c_socket_name.as_ptr(), std::ptr::null()) };
 
         if socket_target.is_null() {
-            panic!("ah crap, stumpless couldn't open that socket!");
+            Err(Box::new(StumplessError))
+        } else {
+            Ok(SocketTarget {
+                target: socket_target,
+            })
         }
-
-        Ok(SocketTarget {
-            target: socket_target,
-        })
     }
 }
 
@@ -239,12 +280,12 @@ impl WelTarget {
             unsafe { stumpless_open_local_wel_target(c_log_name.as_ptr()) };
 
         if wel_target.is_null() {
-            panic!("ah crap, stumpless couldn't open that Windows log!");
+            Err(Box::new(StumplessError))
+        } else {
+            Ok(WelTarget {
+                target: wel_target,
+            })
         }
-
-        Ok(WelTarget {
-            target: wel_target,
-        })
     }
 }
 

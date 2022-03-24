@@ -82,8 +82,12 @@ implementations. There are differences that arise from decisions made for
 simplicity, performance, or necessity. Here are the differences that are
 relevant to you if you're already familiar with or using other loggers.
 
-  * The default output with no arguments is `stdout` instead of `/dev/log`.
-  * The time quality structured data element is not included (pending Stumpless
-    implementation of this feature).
-  * The following flags/modes of operation are not supported:
-    * `--rfc3164` for the RFC 3164 BSD syslog format of messages
+ * The default output with no arguments is `stdout` instead of `/dev/log`.
+ * The time quality structured data element is not included (pending Stumpless
+   implementation of this feature).
+ * Network servers IP version and protocol are specified together such as
+   `--tcp4` rather than separately via `-T` or `-d` flags independent of the
+   `-n` flag. This is to support the specification of multiple targets using
+   different combinations in a single invocation.
+ * The following flags/modes of operation are not supported:
+   * `--rfc3164` for the RFC 3164 BSD syslog format of messages
