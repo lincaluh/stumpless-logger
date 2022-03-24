@@ -4,43 +4,16 @@ use std::error::Error;
 use std::ffi::CString;
 use std::fmt;
 
-pub enum Facility {
-    Kernel = stumpless_facility_STUMPLESS_FACILITY_KERN as isize,
-    User = stumpless_facility_STUMPLESS_FACILITY_USER as isize,
-    Mail = stumpless_facility_STUMPLESS_FACILITY_MAIL as isize,
-    Daemon = stumpless_facility_STUMPLESS_FACILITY_DAEMON as isize,
-    Auth = stumpless_facility_STUMPLESS_FACILITY_AUTH as isize,
-    Syslog = stumpless_facility_STUMPLESS_FACILITY_SYSLOG as isize,
-    Lpr = stumpless_facility_STUMPLESS_FACILITY_LPR as isize,
-    News = stumpless_facility_STUMPLESS_FACILITY_NEWS as isize,
-    Uucp = stumpless_facility_STUMPLESS_FACILITY_UUCP as isize,
-    Cron = stumpless_facility_STUMPLESS_FACILITY_CRON as isize,
-    Auth2 = stumpless_facility_STUMPLESS_FACILITY_AUTH2 as isize,
-    FTP = stumpless_facility_STUMPLESS_FACILITY_FTP as isize,
-    NTP = stumpless_facility_STUMPLESS_FACILITY_NTP as isize,
-    Audit = stumpless_facility_STUMPLESS_FACILITY_AUDIT as isize,
-    Alert = stumpless_facility_STUMPLESS_FACILITY_ALERT as isize,
-    Cron2 = stumpless_facility_STUMPLESS_FACILITY_CRON2 as isize,
-    Local0 = stumpless_facility_STUMPLESS_FACILITY_LOCAL0 as isize,
-    Local1 = stumpless_facility_STUMPLESS_FACILITY_LOCAL1 as isize,
-    Local2 = stumpless_facility_STUMPLESS_FACILITY_LOCAL2 as isize,
-    Local3 = stumpless_facility_STUMPLESS_FACILITY_LOCAL3 as isize,
-    Local4 = stumpless_facility_STUMPLESS_FACILITY_LOCAL4 as isize,
-    Local5 = stumpless_facility_STUMPLESS_FACILITY_LOCAL5 as isize,
-    Local6 = stumpless_facility_STUMPLESS_FACILITY_LOCAL6 as isize,
-    Local7 = stumpless_facility_STUMPLESS_FACILITY_LOCAL7 as isize,
-}
+mod facility;
+pub use crate::facility::Facility;
 
-pub enum Severity {
-    Emergency = stumpless_severity_STUMPLESS_SEVERITY_EMERG as isize,
-    Alert = stumpless_severity_STUMPLESS_SEVERITY_ALERT as isize,
-    Critical = stumpless_severity_STUMPLESS_SEVERITY_CRIT as isize,
-    Error = stumpless_severity_STUMPLESS_SEVERITY_ERR as isize,
-    Warning = stumpless_severity_STUMPLESS_SEVERITY_WARNING as isize,
-    Notice = stumpless_severity_STUMPLESS_SEVERITY_NOTICE as isize,
-    Info = stumpless_severity_STUMPLESS_SEVERITY_INFO as isize,
-    Debug = stumpless_severity_STUMPLESS_SEVERITY_DEBUG as isize,
-}
+mod severity;
+pub use crate::severity::Severity;
+
+#[cfg(feature = "socket")]
+mod socket;
+#[cfg(feature = "socket")]
+pub use crate::socket::SocketTarget;
 
 #[derive(Debug, Clone)]
 pub struct StumplessError;
@@ -225,44 +198,6 @@ impl Drop for NetworkTarget {
     fn drop(&mut self) {
         unsafe {
             stumpless_close_network_target(self.target);
-        }
-    }
-}
-
-#[cfg(feature = "socket")]
-pub struct SocketTarget {
-    target: *mut stumpless_target,
-}
-
-#[cfg(feature = "socket")]
-impl SocketTarget {
-    pub fn new(socket_name: &str) -> Result<Self, Box<dyn Error>> {
-        let c_socket_name = CString::new(socket_name)?;
-        let socket_target =
-            unsafe { stumpless_open_socket_target(c_socket_name.as_ptr(), std::ptr::null()) };
-
-        if socket_target.is_null() {
-            Err(Box::new(StumplessError))
-        } else {
-            Ok(SocketTarget {
-                target: socket_target,
-            })
-        }
-    }
-}
-
-#[cfg(feature = "socket")]
-impl Target for SocketTarget {
-    fn get_pointer(&self) -> *mut stumpless_target {
-        self.target
-    }
-}
-
-#[cfg(feature = "socket")]
-impl Drop for SocketTarget {
-    fn drop(&mut self) {
-        unsafe {
-            stumpless_close_socket_target(self.target);
         }
     }
 }
