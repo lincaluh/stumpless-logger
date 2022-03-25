@@ -10,10 +10,28 @@ pub use crate::facility::Facility;
 mod severity;
 pub use crate::severity::Severity;
 
+mod file;
+pub use crate::file::FileTarget;
+
+#[cfg(feature = "journald")]
+mod journald;
+#[cfg(feature = "journald")]
+pub use crate::socket::JournaldTarget;
+
+#[cfg(feature = "network")]
+mod network;
+#[cfg(feature = "network")]
+pub use crate::socket::NetworkTarget;
+
 #[cfg(feature = "socket")]
 mod socket;
 #[cfg(feature = "socket")]
 pub use crate::socket::SocketTarget;
+
+#[cfg(feature = "wel")]
+mod wel;
+#[cfg(feature = "wel")]
+pub use crate::socket::WelTarget;
 
 #[derive(Debug, Clone)]
 pub struct StumplessError;
@@ -92,150 +110,5 @@ pub fn add_message(target: &impl Target, message: &str) -> Result<u32, Box<dyn E
         Ok(add_result.try_into().unwrap())
     } else {
         Err(Box::new(StumplessError))
-    }
-}
-
-pub struct FileTarget {
-    target: *mut stumpless_target,
-}
-
-impl FileTarget {
-    pub fn new(filename: &str) -> Result<Self, Box<dyn Error>> {
-        let c_filename = CString::new(filename)?;
-        let file_target = unsafe { stumpless_open_file_target(c_filename.as_ptr()) };
-
-        if file_target.is_null() {
-            Err(Box::new(StumplessError))
-        } else {
-            Ok(FileTarget {
-                target: file_target,
-            })
-        }
-    }
-}
-
-impl Target for FileTarget {
-    fn get_pointer(&self) -> *mut stumpless_target {
-        self.target
-    }
-}
-
-impl Drop for FileTarget {
-    fn drop(&mut self) {
-        unsafe {
-            stumpless_close_file_target(self.target);
-        }
-    }
-}
-
-#[cfg(feature = "journald")]
-pub struct JournaldTarget {
-    target: *mut stumpless_target,
-}
-
-#[cfg(feature = "journald")]
-impl JournaldTarget {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
-        let target_name = CString::new("stumpless-cli")?;
-        let journald_target = unsafe { stumpless_open_journald_target(target_name.as_ptr()) };
-
-        if journald_target.is_null() {
-            Err(Box::new(StumplessError))
-        } else {
-            Ok(JournaldTarget {
-                target: journald_target,
-            })
-        }
-    }
-}
-
-#[cfg(feature = "journald")]
-impl Target for JournaldTarget {
-    fn get_pointer(&self) -> *mut stumpless_target {
-        self.target
-    }
-}
-
-#[cfg(feature = "journald")]
-impl Drop for JournaldTarget {
-    fn drop(&mut self) {
-        unsafe {
-            stumpless_close_journald_target(self.target);
-        }
-    }
-}
-
-#[cfg(feature = "network")]
-pub struct NetworkTarget {
-    target: *mut stumpless_target,
-}
-
-#[cfg(feature = "network")]
-impl NetworkTarget {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
-        let target_name = CString::new("stumpless-cli")?;
-        let network_target = unsafe { stumpless_open_network_target(target_name.as_ptr(), 0, 0) };
-
-        if network_target.is_null() {
-            Err(Box::new(StumplessError))
-        } else {
-            Ok(NetworkTarget {
-                target: network_target,
-            })
-        }
-    }
-}
-
-#[cfg(feature = "network")]
-impl Target for NetworkTarget {
-    fn get_pointer(&self) -> *mut stumpless_target {
-        self.target
-    }
-}
-
-#[cfg(feature = "network")]
-impl Drop for NetworkTarget {
-    fn drop(&mut self) {
-        unsafe {
-            stumpless_close_network_target(self.target);
-        }
-    }
-}
-
-#[cfg(feature = "wel")]
-pub struct WelTarget {
-    target: *mut stumpless_target,
-}
-
-#[cfg(feature = "wel")]
-impl WelTarget {
-    pub fn new(log_name: &str) -> Result<Self, Box<dyn Error>> {
-        let c_log_name = CString::new(log_name)?;
-        let wel_target =
-            unsafe { stumpless_open_local_wel_target(c_log_name.as_ptr()) };
-
-        if wel_target.is_null() {
-            Err(Box::new(StumplessError))
-        } else {
-            Ok(WelTarget {
-                target: wel_target,
-            })
-        }
-    }
-}
-
-#[cfg(feature = "wel")]
-impl Target for WelTarget {
-    fn get_pointer(&self) -> *mut stumpless_target {
-        self.target
-    }
-}
-
-#[cfg(feature = "wel")]
-impl Drop for WelTarget {
-    fn drop(&mut self) {
-        unsafe {
-            stumpless_close_wel_target(self.target);
-        }
     }
 }
