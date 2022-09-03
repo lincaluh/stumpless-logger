@@ -1,8 +1,8 @@
 mod entry;
-pub use crate::entry::{Entry, add_entry};
+pub use crate::entry::{add_entry, Entry};
 
 mod error;
-pub use crate::error::{StumplessError, perror};
+pub use crate::error::{perror, StumplessError};
 
 mod facility;
 pub use crate::facility::Facility;
@@ -14,7 +14,7 @@ mod severity;
 pub use crate::severity::Severity;
 
 mod target;
-pub use crate::target::{Target, add_message};
+pub use crate::target::{add_message, Target};
 
 #[cfg(feature = "journald")]
 mod journald;
@@ -34,4 +34,4 @@ pub use crate::socket::SocketTarget;
 #[cfg(feature = "wel")]
 mod wel;
 #[cfg(feature = "wel")]
-pub use crate::wel::WelTarget;
+pub use crate::wel::{add_default_wel_event_source, WelTarget};

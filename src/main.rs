@@ -1,4 +1,4 @@
-use clap::{arg, command};
+use clap::{arg, command, Arg, ValueSource};
 use itertools::Itertools;
 use stumpless::{add_entry, Entry, Facility, FileTarget, Severity};
 
@@ -12,7 +12,7 @@ use stumpless::NetworkTarget;
 use stumpless::SocketTarget;
 
 #[cfg(feature = "wel")]
-use stumpless::WelTarget;
+use stumpless::{add_default_wel_event_source, WelTarget};
 
 fn main() {
     let cli_matches = command!()
@@ -34,9 +34,39 @@ connecting socket.",
         .arg(arg!(-'u' --"socket" [socket] "Log to the provided socket, or /dev/log if none is provided.").required(false))
         .arg(arg!(-'l' --"log-file" <file> "Log the entry to the given file.").required(false))
         .arg(arg!(-'c' --"tcp4" <server> "Send the entry to the given server using TCP over IPv4.").required(false))
-        .arg(arg!(-'w' --"windows-event-log" [log] "Log to the Windows Event Log provided, which is Application if none is provided.").required(false))
-        .arg(arg!(message: <message> "The message to send in the log entry.").multiple_values(true))
+        .arg(Arg::new("windows-event-log").short('w').takes_value(true).value_name("log").help("Log to the Windows Event Log provided.")
+                .default_missing_value("Stumpless")
+                .min_values(0)
+                .require_equals(true)
+                .required(false))
+        .arg(arg!(--"install-wel-default-source" "Installs the stumpless default Windows Event Log source.")
+                .long_help(
+                        "Having the event source information installed is required for the
+Event Viewer to properly display events logged to it. This only needs to happen
+once, and can be done after the events themselves are logged with no loss of
+information. This option requires privileges to access and modify the Windows
+Registry to function properly.",
+                )
+                .required(false)
+        )
+        .arg(Arg::new("message").help("The message to send in the log entry.").multiple_values(true).required_unless("install-wel-default-source"))
         .get_matches();
+
+    #[cfg(feature = "wel")]
+    if cli_matches.is_present("install-wel-default-source") {
+        add_default_wel_event_source()
+            .expect("adding the default Windows Event Log source failed!");
+    }
+
+    #[cfg(not(feature = "wel"))]
+    if cli_matches.is_present("install-wel-default-source") {
+        eprintln!("Windows Event Log functionality is not enabled, ignoring --install-wel-default-source option")
+    }
+
+    if cli_matches.occurrences_of("message") == 0 {
+        // we are all done if there is no message to log
+        return;
+    }
 
     let message_iterator = cli_matches.values_of("message").unwrap();
 
@@ -59,7 +89,7 @@ connecting socket.",
                 if let Err(_error) = add_entry(&target, &entry) {
                     stumpless::perror("logging to the file target failed");
                 }
-            },
+            }
         };
     }
 
@@ -87,7 +117,7 @@ connecting socket.",
     }
 
     #[cfg(feature = "wel")]
-    if cli_matches.is_present("wel") {
+    if cli_matches.value_source("windows-event-log") == Some(ValueSource::CommandLine) {
         let wel_log_name = cli_matches.value_of("windows-event-log").unwrap();
         let wel_target = WelTarget::new(wel_log_name).unwrap();
         add_entry(&wel_target, &entry).expect("logging to the Windows Event Log failed!");

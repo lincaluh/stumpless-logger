@@ -1,11 +1,11 @@
 use stumpless_sys::{stumpless_add_entry, stumpless_entry, stumpless_new_entry_str};
 
-use std::error::Error;
-use std::ffi::CString;
+use crate::error::StumplessError;
 use crate::facility::Facility;
 use crate::severity::Severity;
-use crate::error::StumplessError;
 use crate::target::Target;
+use std::error::Error;
+use std::ffi::CString;
 
 pub struct Entry {
     entry: *mut stumpless_entry,
@@ -41,9 +41,7 @@ impl Entry {
 }
 
 pub fn add_entry(target: &impl Target, entry: &Entry) -> Result<u32, Box<dyn Error>> {
-    let add_result = unsafe {
-        stumpless_add_entry(target.get_pointer(), entry.entry)
-    };
+    let add_result = unsafe { stumpless_add_entry(target.get_pointer(), entry.entry) };
 
     if add_result >= 0 {
         Ok(add_result.try_into().unwrap())
