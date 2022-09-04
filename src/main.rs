@@ -1,4 +1,4 @@
-use clap::{command, Arg, ValueSource};
+use clap::{command, Arg};
 use itertools::Itertools;
 use stumpless::{add_entry, Entry, Facility, FileTarget, Severity};
 
@@ -10,6 +10,9 @@ use stumpless::NetworkTarget;
 
 #[cfg(feature = "socket")]
 use stumpless::SocketTarget;
+
+#[cfg(feature = "wel")]
+use clap::ValueSource;
 
 #[cfg(feature = "wel")]
 use stumpless::{add_default_wel_event_source, WelTarget};
