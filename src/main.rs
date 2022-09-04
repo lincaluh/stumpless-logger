@@ -1,4 +1,4 @@
-use clap::{arg, command, Arg, ValueSource};
+use clap::{command, Arg, ValueSource};
 use itertools::Itertools;
 use stumpless::{add_entry, Entry, Facility, FileTarget, Severity};
 
@@ -17,36 +17,85 @@ use stumpless::{add_default_wel_event_source, WelTarget};
 fn main() {
     let cli_matches = command!()
         .arg(
-            arg!(-'i' --"id" [id] "Log the PID of the stumpless process in each entry.")
+            Arg::new("id")
+                .short('i')
+                .long("id")
+                .takes_value(true)
+                .value_name("id")
+                .min_values(0)
+                .multiple_values(false)
+                .help("Log the given PID in each entry. Defaults to the PID of the CLI process.")
                 .long_help(
                     "When the optional argument id is specified, then it is used instead of the
-command's PID. It's recommended to set this to a single value in scripts that
+executable's PID. It's recommended to set this to a single value in scripts that
 send multiple messages, for example the script's own process id.
 
 Note that some logging infrastructure (for example systemd when listening on
 /dev/log) may overwrite this value, for example with the one derived from the
 connecting socket.",
-                )
-                .multiple_values(false),
+                ),
         )
-        .arg(arg!(-'f' --"file" "Log the contents of the file instead of reading from stdin or message arg.").required(false))
-        .arg(arg!(-'j' --"journald" "Log the entry to the journald system.").required(false))
-        .arg(arg!(-'u' --"socket" [socket] "Log to the provided socket, or /dev/log if none is provided.").required(false))
-        .arg(arg!(-'l' --"log-file" <file> "Log the entry to the given file.").required(false))
-        .arg(arg!(-'c' --"tcp4" <server> "Send the entry to the given server using TCP over IPv4.").required(false))
+        .arg(
+            Arg::new("file")
+                .short('f')
+                .long("file")
+                .help("Log the contents of the file instead of reading from stdin or message arg.")
+                .required(false)
+        )
+        .arg(
+            Arg::new("journald")
+                .short('j')
+                .long("journald")
+                .help("Log the entry to the journald system.")
+                .required(false)
+        )
+        .arg(
+            Arg::new("socket")
+                .short('u')
+                .long("socket")
+                .takes_value(true)
+                .value_name("socket")
+                .min_values(0)
+                .multiple_values(false)
+                .require_equals(true)
+                .default_missing_value("/dev/log")
+                .help("Log to the provided socket, defaulting to /dev/log.")
+                .required(false)
+        )
+        .arg(
+            Arg::new("log-file")
+                .short('l')
+                .long("log-file")
+                .takes_value(true)
+                .value_name("file")
+                .help("Log the entry to the given file.")
+                .required(false)
+        )
+        .arg(
+            Arg::new("tcp4")
+                .short('c')
+                .long("tcp4")
+                .takes_value(true)
+                .value_name("server")
+                .help("Send the entry to the given server using TCP over IPv4.")
+                .required(false)
+        )
         .arg(
             Arg::new("windows-event-log")
                 .short('w')
                 .long("windows-event-log")
                 .takes_value(true)
                 .value_name("log")
-                .help("Log to the Windows Event Log provided.")
+                .help("Log to the Windows Event Log provided, defaulting to Stumpless.")
                 .default_missing_value("Stumpless")
                 .min_values(0)
                 .require_equals(true)
                 .required(false))
-        .arg(arg!(--"install-wel-default-source" "Installs the stumpless default Windows Event Log source.")
-                .long_help(
+        .arg(
+            Arg::new("install-wel-default-source")
+                 .long("install-wel-default-source")
+                 .help("Installs the stumpless default Windows Event Log source.")
+                 .long_help(
                         "Having the event source information installed is required for the
 Event Viewer to properly display events logged to it. This only needs to happen
 once, and can be done after the events themselves are logged with no loss of
@@ -55,7 +104,11 @@ Registry to function properly.",
                 )
                 .required(false)
         )
-        .arg(Arg::new("message").help("The message to send in the log entry.").multiple_values(true).required_unless("install-wel-default-source"))
+        .arg(
+            Arg::new("message")
+                .help("The message to send in the log entry.")
+                .multiple_values(true)
+                .required_unless("install-wel-default-source"))
         .get_matches();
 
     #[cfg(feature = "wel")]
