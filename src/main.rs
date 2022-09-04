@@ -15,6 +15,23 @@ use stumpless::SocketTarget;
 use stumpless::{add_default_wel_event_source, WelTarget};
 
 fn main() {
+    let id_long_help = "\
+        When the optional argument id is specified, then it is used instead of \
+        the executable's PID. It's recommended to set this to a single value \
+        in scripts that send multiple messages, for example the script's own \
+        process id.\
+        \n\n\
+        Note that some logging infrastructure (for example systemd when \
+        listening on /dev/log) may overwrite this value, for example with the \
+        one derived from the connecting socket.";
+
+    let wel_install_long_help = "\
+        Having the event source information installed is required for the \
+        Event Viewer to properly display events logged to it. This only needs \
+        to happen once, and can be done after the events themselves are logged \
+        with no loss of information. This option requires privileges to access \
+        and modify the Windows Registry to function properly.";
+
     let cli_matches = command!()
         .arg(
             Arg::new("id")
@@ -25,15 +42,7 @@ fn main() {
                 .min_values(0)
                 .multiple_values(false)
                 .help("Log the given PID in each entry. Defaults to the PID of the CLI process.")
-                .long_help(
-                    "When the optional argument id is specified, then it is used instead of the
-executable's PID. It's recommended to set this to a single value in scripts that
-send multiple messages, for example the script's own process id.
-
-Note that some logging infrastructure (for example systemd when listening on
-/dev/log) may overwrite this value, for example with the one derived from the
-connecting socket.",
-                ),
+                .long_help(id_long_help)
         )
         .arg(
             Arg::new("file")
@@ -93,22 +102,17 @@ connecting socket.",
                 .required(false))
         .arg(
             Arg::new("install-wel-default-source")
-                 .long("install-wel-default-source")
-                 .help("Installs the stumpless default Windows Event Log source.")
-                 .long_help(
-                        "Having the event source information installed is required for the
-Event Viewer to properly display events logged to it. This only needs to happen
-once, and can be done after the events themselves are logged with no loss of
-information. This option requires privileges to access and modify the Windows
-Registry to function properly.",
-                )
+                .long("install-wel-default-source")
+                .help("Installs the stumpless default Windows Event Log source.")
+                .long_help(wel_install_long_help)
                 .required(false)
         )
         .arg(
             Arg::new("message")
                 .help("The message to send in the log entry.")
                 .multiple_values(true)
-                .required_unless("install-wel-default-source"))
+                .required_unless("install-wel-default-source")
+        )
         .get_matches();
 
     #[cfg(feature = "wel")]
