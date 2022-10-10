@@ -389,6 +389,7 @@ dependencies = [
  "clap 3.2.14",
  "embed-resource",
  "itertools",
+ "regex",
  "stumpless-sys",
 ]
 

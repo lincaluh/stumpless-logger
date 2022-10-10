@@ -1,6 +1,6 @@
 use clap::{command, Arg};
 use itertools::Itertools;
-use stumpless::{add_entry, Entry, Facility, FileTarget, Severity};
+use stumpless::{add_entry, Entry, Facility, FileTarget, prival_from_string, Severity};
 
 #[cfg(feature = "journald")]
 use stumpless::JournaldTarget;
@@ -46,6 +46,13 @@ fn main() {
                 .multiple_values(false)
                 .help("Log the given PID in each entry. Defaults to the PID of the CLI process.")
                 .long_help(id_long_help)
+        )
+        .arg(
+            Arg::new("priority")
+                .short('p')
+                .long("priority")
+                .help("The priority of the message to be sent.")
+                .required(false)
         )
         .arg(
             Arg::new("file")
@@ -146,6 +153,12 @@ fn main() {
         &message,
     )
     .expect("entry creation failed!");
+
+    if cli_matches.is_present("priority") {
+        let priority = cli_matches.value_of("priority").unwrap();
+        let prival = prival_from_string(priority).expect("could not parse priority");
+        entry.set_prival(prival).expect("priority invalid");
+    }
 
     if cli_matches.is_present("log-file") {
         let log_filename = cli_matches.value_of("log-file").unwrap();

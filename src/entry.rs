@@ -1,4 +1,4 @@
-use stumpless_sys::{stumpless_add_entry, stumpless_entry, stumpless_new_entry_str};
+use stumpless_sys::{stumpless_add_entry, stumpless_entry, stumpless_new_entry_str, stumpless_set_entry_prival};
 
 use crate::error::StumplessError;
 use crate::facility::Facility;
@@ -36,6 +36,16 @@ impl Entry {
             Err(Box::new(StumplessError))
         } else {
             Ok(Entry { entry: new_entry })
+        }
+    }
+
+    pub fn set_prival(&self, prival: i32) -> Result<&Entry, Box<dyn Error>> {
+        let set_result = unsafe { stumpless_set_entry_prival(self.entry, prival)};
+
+        if set_result.is_null() {
+            Err(Box::new(StumplessError))
+        } else {
+            Ok(self)
         }
     }
 }
